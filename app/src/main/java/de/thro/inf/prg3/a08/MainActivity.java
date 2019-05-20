@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Locale;
 
 import de.thro.inf.prg3.a08.api.OpenMensaAPI;
+import de.thro.inf.prg3.a08.api.OpenMensaAPIService;
 import de.thro.inf.prg3.a08.model.Meal;
 import de.thro.inf.prg3.a08.utils.MealsFilterUtility;
 import retrofit2.Call;
@@ -34,14 +35,9 @@ public class MainActivity extends AppCompatActivity {
         dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
         /* TODO extract me into a singleton...please :) */
-        /* create Retrofit instance to get a OpenMensaAPI proxy object */
-        Retrofit retrofit = new Retrofit.Builder()
-                /* no type adapters are required so the default GSON converter is fine */
-                .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl("http://openmensa.org/api/v2/")
-                .build();
+        OpenMensaAPIService svc = OpenMensaAPIService.getInstance();
+        openMensaAPI = svc.getApi();
 
-        openMensaAPI = retrofit.create(OpenMensaAPI.class);
     }
 
     @Override
@@ -75,53 +71,52 @@ public class MainActivity extends AppCompatActivity {
         /* TODO the following code differs from the solution of the last assignment to resolve errors because the refresh button and the vegetarian checkbox are already gone
          * you may keep most of the business logic *
          * register click handler */
-        findViewById(R.id.filterSpinner).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                /* execute call to the OpenMensaAPI
-                * note that the .enqueue(...) method is used instead of .execute() */
-                openMensaAPI.getMeals(dateFormat.format(new Date())).enqueue(new Callback<List<Meal>>() {
-                    @Override
-                    public void onResponse(Call<List<Meal>> call, Response<List<Meal>> response) {
-                        /* check if response code was 2xx */
-                        if (response.isSuccessful()) {
-                            /* remove elements from the adapter */
-                            mealsArrayAdapter.clear();
-                            /* unwrap the retrieved meals */
-                            List<Meal> retrievedMeals = response.body();
+        filterSpinner.setOnClickListener((view) -> {
 
-                            /* Check if we should filter for vegetarian meals */
-                            /* TODO please fix me - I'm totally useless because there's no checkbox anymore */
-                            if (false) {
-                                List<Meal> vegetarian = MealsFilterUtility.filterForVegetarian(retrievedMeals);
+            /* execute call to the OpenMensaAPI
+             * note that the .enqueue(...) method is used instead of .execute() */
+            openMensaAPI.getMeals(dateFormat.format(new Date())).enqueue(new Callback<List<Meal>>() {
+                @Override
+                public void onResponse(Call<List<Meal>> call, Response<List<Meal>> response) {
+                    /* check if response code was 2xx */
+                    if (response.isSuccessful()) {
+                        /* remove elements from the adapter */
+                        mealsArrayAdapter.clear();
+                        /* unwrap the retrieved meals */
+                        List<Meal> retrievedMeals = response.body();
 
-                                /* add all filtered meals to the adapter to display them in the view */
-                                mealsArrayAdapter.addAll(vegetarian);
-                            } else {
-                                /* add all retrieved meals to the adapter because we haven't to filter for anything */
-                                mealsArrayAdapter.addAll(retrievedMeals);
-                            }
+                        /* Check if we should filter for vegetarian meals */
+                        /* TODO please fix me - I'm totally useless because there's no checkbox anymore */
+                        if (false) {
+                            List<Meal> vegetarian = MealsFilterUtility.filterForVegetarian(retrievedMeals);
+
+                            /* add all filtered meals to the adapter to display them in the view */
+                            mealsArrayAdapter.addAll(vegetarian);
                         } else {
-                            /* display an error message if response code was not 2xx */
-                            Toast.makeText(
-                                    MainActivity.this,
-                                    R.string.api_failure_toast,
-                                    Toast.LENGTH_LONG
-                            ).show();
+                            /* add all retrieved meals to the adapter because we haven't to filter for anything */
+                            mealsArrayAdapter.addAll(retrievedMeals);
                         }
-                    }
-
-                    @Override
-                    public void onFailure(Call<List<Meal>> call, Throwable t) {
-                        /* display an error message if call failed */
+                    } else {
+                        /* display an error message if response code was not 2xx */
                         Toast.makeText(
                                 MainActivity.this,
                                 R.string.api_failure_toast,
                                 Toast.LENGTH_LONG
                         ).show();
                     }
-                });
-            }
+                }
+
+                @Override
+                public void onFailure(Call<List<Meal>> call, Throwable t) {
+                    /* display an error message if call failed */
+                    Toast.makeText(
+                            MainActivity.this,
+                            R.string.api_failure_toast,
+                            Toast.LENGTH_LONG
+                    ).show();
+                }
+            });
+
         });
     }
 }
