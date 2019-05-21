@@ -9,9 +9,9 @@ public abstract class FilterFactory {
         switch (key) {
             case "Vegetarian":
                 return new VegetarianStrategy();
-            case "Soy":
+            case "No Soy":
                 return new NoSoyStrategy();
-            case "Pork":
+            case "No Pork":
                 return new NoPorkStrategy();
         }
         return new AllMealsStrategy();

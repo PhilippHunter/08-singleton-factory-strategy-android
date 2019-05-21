@@ -25,7 +25,7 @@ public class OpenMensaAPIService {
     private OpenMensaAPIService() {
         Retrofit retrofit = new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl("http://openmensa.org/api/v2/")
+                .baseUrl("https://openmensa.org/api/v2/")
                 .build();
 
         mensaApiInstance = retrofit.create(OpenMensaAPI.class);
